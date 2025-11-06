@@ -86,6 +86,31 @@ impl FieldElement {
     }
 }
 
+// negation
+
+use std::ops::Neg;
+impl Neg for FieldElement {
+    type Output = Self;
+    fn neg(self) -> Self {
+        if self.0 == 0 {
+            self
+        } else {
+            FieldElement(GOLDILOCKS_P - self.0)
+        }
+    }
+}
+
+// division 
+
+use std::ops::Div;
+impl Div for FieldElement {
+    type Output = Self;
+    fn div(self, other: Self) -> Self {
+        self * other.inverse()
+
+    } 
+}
+
 fn main() {
     //test wrapping
     let x = FieldElement::new(GOLDILOCKS_P);
