@@ -14,6 +14,28 @@ impl FieldElement {
     }
 }
 
+// folding
+
+impl FieldElement {
+    fn reduce(prod: u128) -> u64 {
+        // Split into lower and upper 64 bits
+        let xl = prod as u64;
+        let xh = (prod >> 64) as u64;
+
+        // Step 1: fold low bits
+        let (a, e) = xl.overflowing_add(xl << 32);
+
+        // Step 2: adjust for carry
+        let b = a.wrapping_sub(a >> 32).wrapping_sub(e as u64);
+
+        // Step 3: subtract upper bits with borrow
+        let (r, c) = xh.overflowing_sub(b);
+
+        // Step 4: final adjustment to ensure 0 <= r < GOLDILOCKS_P
+        r.wrapping_sub(0u32.wrapping_sub(c as u32) as u64)
+    }
+}
+
 // Addition in the field
 
 use std::ops::Add;
@@ -57,7 +79,7 @@ impl std::ops::Mul for FieldElement {
 
     fn mul(self, other: Self) -> Self {
        let prod = (self.0 as u128) * (other.0 as u128);
-       let reduced = (prod % GOLDILOCKS_P as u128 ) as u64;
+       let reduced = FieldElement::reduce(prod);
        FieldElement(reduced)
     }
 }
